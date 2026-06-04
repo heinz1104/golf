@@ -31,8 +31,6 @@
                 <group>
                     <field name="booking_id" readonly="1"/>
                     <field name="booking_fee" readonly="1"/>
-                    <field name="pos_total" readonly="1"/>
-                    <field name="grand_total" readonly="1"/>
                 </group>
                 <footer>
                     <button name="action_print_receipt" type="object" string="Print Receipt" class="btn-primary"/>

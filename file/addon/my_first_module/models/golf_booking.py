@@ -57,17 +57,7 @@ class GolfBooking(models.Model):
         string="Check-in Logs",
     )
 
-    pos_order_ids = fields.Many2many(
-        "pos.order",
-        string="POS Orders",
-        compute="_compute_pos_orders",
-        readonly=True,
-    )
-
-    pos_order_count = fields.Integer(compute="_compute_pos_orders")
     checkin_log_count = fields.Integer(compute="_compute_counts")
-    pos_total = fields.Monetary(compute="_compute_totals", string="POS Total", store=False)
-    grand_total = fields.Monetary(compute="_compute_totals", string="Grand Total", store=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -110,27 +100,10 @@ class GolfBooking(models.Model):
                     if rec.start_datetime.date() != rec.end_datetime.date():
                         raise ValidationError("Booking must be within the same day.")
 
-    @api.depends("partner_id")
-    def _compute_pos_orders(self):
-        posOrder = self.env["pos.order"]
-        for rec in self:
-            orders = posOrder.search([
-                ("golf_booking_id", "=", rec.id),
-            ])
-            rec.pos_order_ids = orders
-            rec.pos_order_count = len(orders)
-
     @api.depends("checkin_log_ids")
     def _compute_counts(self):
         for rec in self:
             rec.checkin_log_count = len(rec.checkin_log_ids)
-
-    @api.depends("booking_fee", "pos_order_ids")
-    def _compute_totals(self):
-        for rec in self:
-            pos_total = sum(rec.pos_order_ids.mapped("amount_total"))
-            rec.pos_total = pos_total
-            rec.grand_total = (rec.booking_fee or 0.0) + pos_total
 
     def action_book(self):
         for rec in self:
@@ -194,16 +167,6 @@ class GolfBooking(models.Model):
                 "user_id": self.env.user.id,
                 "note": rec.cancel_reason or "",
             })
-
-    def action_view_pos_orders(self):
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": "POS Orders",
-            "res_model": "pos.order",
-            "view_mode": "list,form",
-            "domain": [("golf_booking_id", "=", self.id)],
-        }
 
     def action_view_logs(self):
         self.ensure_one()

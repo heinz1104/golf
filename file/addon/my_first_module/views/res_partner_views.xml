@@ -22,15 +22,6 @@
                     <span>Logs</span>
                 </button>
 
-                <button type="object"
-                        name="action_view_pos_orders"
-                        class="oe_stat_button"
-                        icon="fa-shopping-cart">
-                    <field name="pos_order_count" widget="statinfo"/>
-                    <span>POS Orders</span>
-                </button>
-                
-
             </xpath>
         </field>
     </record>

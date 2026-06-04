@@ -11,7 +11,6 @@
         "data/sequence.xml",
         "views/golf_tee_location_views.xml",
         'views/golf_booking_views.xml',
-        "vires/golf_pos_view.xml",
         'views/res_partner_views.xml',
         "views/wizard_views.xml",
     ],
