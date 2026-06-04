@@ -1,0 +1,15 @@
+<odoo>
+    <record id="seq_golf_booking" model="ir.sequence">
+        <field name="name">Golf Booking</field>
+        <field name="code">golf.booking</field>
+        <field name="prefix">BK/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+
+    <record id="seq_golf_tee_location" model="ir.sequence">
+        <field name="name">Golf Tee Location</field>
+        <field name="code">golf.tee.location</field>
+        <field name="prefix">TEE/</field>
+        <field name="padding">3</field>
+    </record>
+</odoo>

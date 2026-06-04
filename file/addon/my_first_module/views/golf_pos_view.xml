@@ -1,0 +1,26 @@
+<!--
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <menuitem id="golf_pos_shop_menu"
+              name="POS"
+              parent="golf_root_menu"
+              action="point_of_sale.action_client_pos_menu"
+              sequence="20"/>
+
+  </data>
+</odoo>
+-->
+<odoo>
+<record id="view_pos_order_form_inherit_golf" model="ir.ui.view">
+    <name>pos.order.form.inherit.golf</name>
+    <model>pos.order</model>
+    <inherit_id ref="point_of_sale.view_pos_pos_form"/>
+    <arch type="xml">
+        <xpath expr="//field[@name='partner_id']" position="after">
+            <field name="golf_booking_id" readonly="1"/>
+        </xpath>
+    </arch>
+</record>
+</odoo>

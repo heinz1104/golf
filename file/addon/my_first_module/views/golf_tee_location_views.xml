@@ -1,0 +1,35 @@
+<odoo>
+    <record id="view_golf_tee_location_tree" model="ir.ui.view">
+        <field name="name">golf.tee.location.list</field>
+        <field name="model">golf.tee.location</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="course"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_golf_tee_location_form" model="ir.ui.view">
+        <field name="name">golf.tee.location.form</field>
+        <field name="model">golf.tee.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="course"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_golf_tee_location" model="ir.actions.act_window">
+        <field name="name">Tee Locations</field>
+        <field name="res_model">golf.tee.location</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

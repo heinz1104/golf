@@ -1,0 +1,47 @@
+<!--
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record model="ir.ui.view" id="view_golf_management_list">
+      <field name="name">golf.session.list</field>
+      <field name="model">golf.session</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="display_name" string="Name"/>
+        </list>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_golf_management_window">
+      <field name="name">Players</field>
+      <field name="res_model">golf.session</field>
+      <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_golf_pos_sessions" model="ir.actions.act_window">
+       <field name="name">POS Sessions</field>
+       <field name="res_model">pos.session</field>
+       <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="golf_root_menu"
+              name="Golf Management"
+              web_icon="my_first_module,static/description/image.png"
+              sequence="1"/>
+
+    <menuitem id="golf_player_menu"
+              name="Players"
+              parent="golf_root_menu"
+              action="action_golf_management_window"
+              sequence="10"/>
+
+    <menuitem id="session_menu"
+              name="Sessions"
+              parent="golf_root_menu"
+              action="action_golf_pos_sessions"
+              sequence="20"/>
+
+  </data>
+</odoo>
+-->

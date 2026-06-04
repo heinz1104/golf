@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_partner_form_inherit_golf" model="ir.ui.view">
+        <field name="name">res.partner.form.golf</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+
+                <button type="object"
+                        name="action_view_golf_bookings"
+                        class="oe_stat_button"
+                        icon="fa-calendar">
+                    <field name="golf_booking_count" widget="statinfo"/>
+                    <span>Bookings</span>
+                </button>
+
+                <button type="object"
+                        name="action_view_golf_logs"
+                        class="oe_stat_button"
+                        icon="fa-clock-o">
+                    <field name="golf_checkin_log_count" widget="statinfo"/>
+                    <span>Logs</span>
+                </button>
+
+                <button type="object"
+                        name="action_view_pos_orders"
+                        class="oe_stat_button"
+                        icon="fa-shopping-cart">
+                    <field name="pos_order_count" widget="statinfo"/>
+                    <span>POS Orders</span>
+                </button>
+                
+
+            </xpath>
+        </field>
+    </record>
+</odoo>

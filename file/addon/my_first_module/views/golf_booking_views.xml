@@ -1,0 +1,187 @@
+<odoo>
+    <!-- TREE: bookings -->
+    <record id="view_golf_booking_tree" model="ir.ui.view">
+        <field name="name">golf.booking.list</field>
+        <field name="model">golf.booking</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="tee_location_id"/>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- CALENDAR -->
+    <record id="view_golf_booking_calendar" model="ir.ui.view">
+        <field name="name">golf.booking.calendar</field>
+        <field name="model">golf.booking</field>
+        <field name="arch" type="xml">
+            <calendar string="Tee Bookings"
+                      date_start="start_datetime"
+                      date_stop="end_datetime">
+                <field name="partner_id"/>
+                <field name="tee_location_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_golf_booking_form" model="ir.ui.view">
+        <field name="name">golf.booking.form</field>
+        <field name="model">golf.booking</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_book" type="object" string="Book"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+
+                    <button name="action_check_in" type="object" string="Check In"
+                            class="btn-success"
+                            invisible="state != 'booked'"/>
+
+                    <button name="action_check_out" type="object" string="Check Out"
+                            class="btn-warning"
+                            invisible="state != 'checked_in'"/>
+
+                    <button name="action_open_cancel_wizard" type="object" string="Cancel"
+                            class="btn-danger"
+                            invisible="state in ('checked_out', 'cancelled')"/>
+
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,booked,checked_in,checked_out,cancelled"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_pos_orders"
+                                class="oe_stat_button" icon="fa-shopping-cart"
+                                invisible="state in ('draft', 'cancelled')">
+                            <field name="pos_order_count" widget="statinfo"/>
+                            <span>POS Orders</span>
+                        </button>
+
+                        <button type="object" name="action_view_logs"
+                                class="oe_stat_button" icon="fa-clock-o">
+                            <field name="checkin_log_count" widget="statinfo"/>
+                            <span>Logs</span>
+                        </button>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="partner_id"/>
+                            <field name="tee_location_id"/>
+                        </group>
+                        <group>
+                            <field name="start_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="booking_fee"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Check-in History">
+                            <field name="checkin_log_ids" readonly="1">
+                                <list>
+                                    <field name="timestamp"/>
+                                    <field name="action"/>
+                                    <field name="user_id"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="POS Orders"
+                              invisible="state in ('draft', 'cancelled')">
+                            <field name="pos_order_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date_order"/>
+                                    <field name="amount_total"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Cancellation"
+                              invisible="state != 'cancelled'">
+                            <group>
+                                <field name="cancel_reason" readonly="1"/>
+                                <field name="cancelled_at" readonly="1"/>
+                                <field name="cancelled_by" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTIONS -->
+    <record id="action_golf_booking_all" model="ir.actions.act_window">
+        <field name="name">All Bookings</field>
+        <field name="res_model">golf.booking</field>
+        <field name="view_mode">list,form,calendar</field>
+    </record>
+
+    <record id="action_golf_booking_active" model="ir.actions.act_window">
+        <field name="name">Bookings</field>
+        <field name="res_model">golf.booking</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="domain">[('state', 'in', ('draft', 'booked', 'checked_in'))]</field>
+    </record>
+
+    <record id="action_golf_booking_checkin" model="ir.actions.act_window">
+        <field name="name">Check In / Out</field>
+        <field name="res_model">golf.booking</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="domain">[('state', 'in', ('booked', 'checked_in', 'checked_out'))]</field>
+    </record>
+
+    <record id="action_golf_booking_cancelled" model="ir.actions.act_window">
+        <field name="name">Cancelled Bookings</field>
+        <field name="res_model">golf.booking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'cancelled')]</field>
+    </record>
+
+    <!-- MENUS -->
+    <menuitem id="menu_golf_root" name="Golf Management" sequence="1"/>
+
+    <menuitem id="menu_golf_bookings"
+              name="Bookings"
+              parent="menu_golf_root"
+              action="action_golf_booking_active"
+    sequence="10"/>
+
+    <menuitem id="menu_golf_checkin"
+              name="Check In / Out"
+              parent="menu_golf_root"
+              action="action_golf_booking_checkin"
+    sequence="20"/>
+
+    <menuitem id="menu_golf_cancelled"
+              name="Cancelled Bookings"
+              parent="menu_golf_root"
+              action="action_golf_booking_cancelled"
+    sequence="30"/>
+
+    <menuitem id="menu_golf_tee_locations"
+              name="Tee Locations"
+              parent="menu_golf_root"
+              action="action_golf_tee_location"
+    sequence="40"/>
+
+     <menuitem id="golf_pos_menu"
+              name="POS"
+              parent="menu_golf_root"
+              action="point_of_sale.action_client_pos_menu"
+              sequence="50"/>
+</odoo>

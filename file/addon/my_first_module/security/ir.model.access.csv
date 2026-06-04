@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_golf_booking,access.golf.booking,model_golf_booking,base.group_user,1,1,1,1
+access_golf_checkin_log,access.golf.checkin.log,model_golf_checkin_log,base.group_user,1,1,1,1
+access_golf_tee_location,access.golf.tee.location,model_golf_tee_location,base.group_user,1,1,1,1
+access_golf_cancel_wizard,access.golf.cancel.wizard,model_golf_cancel_wizard,base.group_user,1,1,1,1
+access_golf_checkout_wizard,access.golf.checkout.wizard,model_golf_checkout_wizard,base.group_user,1,1,1,1
