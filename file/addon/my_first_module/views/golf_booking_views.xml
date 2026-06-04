@@ -9,6 +9,7 @@
                 <field name="tee_location_id"/>
                 <field name="start_datetime"/>
                 <field name="end_datetime"/>
+                <field name="pos_total" string="POS Total"/>
                 <field name="state"/>
             </list>
         </field>
@@ -96,6 +97,15 @@
                                 <field name="cancelled_by" readonly="1"/>
                             </group>
                         </page>
+                    
+                        <page string="POS Orders">
+                            <field name="pos_order_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="amount_total" sum="Total Amount"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
@@ -135,7 +145,10 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_golf_root" name="Golf Management" sequence="1"/>
+    <menuitem id="menu_golf_root" 
+              name="Golf Management" 
+              web_icon="my_first_module,static/description/images.png"
+              sequence="1"/>
 
     <menuitem id="menu_golf_bookings"
               name="Bookings"

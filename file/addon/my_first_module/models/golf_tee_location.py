@@ -8,4 +8,5 @@ class GolfTeeLocation(models.Model):
 
     name = fields.Char(required=True)
     course = fields.Char()
+    fee = fields.Char(string="Tee Fee", default=0.0)
     active = fields.Boolean(default=True)

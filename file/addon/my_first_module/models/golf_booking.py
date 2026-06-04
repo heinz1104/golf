@@ -59,6 +59,27 @@ class GolfBooking(models.Model):
 
     checkin_log_count = fields.Integer(compute="_compute_counts")
 
+    pos_order_ids = fields.Many2many(
+        "pos.order",
+        string="POS Orders",
+        compute="_compute_pos_orders",
+        readonly=True,
+    )
+    
+    pos_order_count = fields.Integer(compute="_compute_pos_orders")
+    
+    pos_total = fields.Monetary(
+        compute="_compute_totals", 
+        string="POS Total", 
+        store=True
+    )
+    
+    grand_total = fields.Monetary(
+        compute="_compute_totals", 
+        string="Grand Total", 
+        store=True
+    )
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -91,19 +112,46 @@ class GolfBooking(models.Model):
                     "This tee location is already booked in the selected time range."
                 )
 
-            @api.constrains('start_datetime', 'end_datetime')
-            def _check_datetime(self):
-                for rec in self:
-                    if rec.end_datetime <= rec.start_datetime:
-                        raise ValidationError("End time must be after start time.")
+    @api.constrains('start_datetime', 'end_datetime')
+    def _check_datetime(self):
+        for rec in self:
+            if rec.end_datetime <= rec.start_datetime:
+                raise ValidationError("End time must be after start time.")
 
-                    if rec.start_datetime.date() != rec.end_datetime.date():
-                        raise ValidationError("Booking must be within the same day.")
+            if rec.start_datetime.date() != rec.end_datetime.date():
+                raise ValidationError("Booking must be within the same day.")
+
+    # Bookingက POS Order များကိုပဲ စစ်ထုတ်
+    @api.depends("partner_id", "start_datetime", "end_datetime")
+    def _compute_pos_orders(self):
+        posOrder = self.env["pos.order"]
+        for rec in self:
+            if rec.partner_id and rec.start_datetime and rec.end_datetime:
+                orders = posOrder.search([
+                    ("partner_id", "=", rec.partner_id.id),
+                    ("date_order", ">=", rec.start_datetime),   # ကစားချိန် စတင်ပြီးနောက်ပိုင်း
+                    ("date_order", "<=", rec.end_datetime),     # ကစားချိန် မပြီးဆုံးခင်အတွင်း
+                    ("state", "!=", "cancel"),                  # Cancel ဖြစ်သွားတာတွေ မပြရန်
+                ])
+                rec.pos_order_ids = orders
+                rec.pos_order_count = len(orders)
+            else:
+                rec.pos_order_ids = False
+                rec.pos_order_count = 0
 
     @api.depends("checkin_log_ids")
     def _compute_counts(self):
         for rec in self:
             rec.checkin_log_count = len(rec.checkin_log_ids)
+
+    # ဇယားကွက်ထဲပေါ်နေတဲ့ အချိန်ကိုက် POS Order တွေရဲ့ ပမာဏကိုပဲပေါင်း
+    @api.depends("booking_fee", "pos_order_ids.amount_total")
+    def _compute_totals(self):
+        for rec in self:
+            # အပေါ်က compute ပြီးသား ဆွဲထုတ်ပေးထားတဲ့ pos_order_ids ထဲက ပမာဏတွေကိုပဲ တိုက်ရိုက် ပေါင်း
+            pos_total = sum(rec.pos_order_ids.mapped("amount_total"))
+            rec.pos_total = pos_total
+            rec.grand_total = (rec.booking_fee or 0.0) + pos_total
 
     def action_book(self):
         for rec in self:
@@ -122,6 +170,7 @@ class GolfBooking(models.Model):
                 "user_id": self.env.user.id,
             })
 
+    # Wizard ပွင့်မည့် Return Action ကို Loop အပြင်ဘက်သို့ ထုတ်
     def action_check_out(self):
         for rec in self:
             rec.write({
@@ -134,14 +183,17 @@ class GolfBooking(models.Model):
                 "timestamp": fields.Datetime.now(),
                 "user_id": self.env.user.id,
             })
-            return {
-                "type": "ir.actions.act_window",
-                "name": "Checkout Summary",
-                "res_model": "golf.checkout.wizard",
-                "view_mode": "form",
-                "target": "new",
-                "context": {"default_booking_id": rec.id},
-            }
+        
+        # single recordစစ်ပြီးမှ Wizard Action ကို Return ပြန်
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Checkout Summary",
+            "res_model": "golf.checkout.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_booking_id": self.id},
+        }
 
     def action_open_cancel_wizard(self):
         return {
@@ -167,6 +219,22 @@ class GolfBooking(models.Model):
                 "user_id": self.env.user.id,
                 "note": rec.cancel_reason or "",
             })
+
+    # Button နှိပ်လည်း ထိုကစားချိန်အတွင်းက အော်ဒါများကိုပဲ ပြ
+    def action_view_pos_orders(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": "POS Orders",
+            "res_model": "pos.order",
+            "view_mode": "list,form",
+            "domain": [
+                ("partner_id", "=", self.partner_id.id),
+                ("date_order", ">=", self.start_datetime),
+                ("date_order", "<=", self.end_datetime),
+                ("state", "!=", "cancel"),
+            ],
+        }
 
     def action_view_logs(self):
         self.ensure_one()

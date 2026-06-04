@@ -6,6 +6,7 @@
             <list>
                 <field name="name"/>
                 <field name="course"/>
+                <field name="fee"/>
                 <field name="active"/>
             </list>
         </field>
@@ -20,6 +21,7 @@
                     <group>
                         <field name="name"/>
                         <field name="course"/>
+                        <field name="fee"/>
                         <field name="active"/>
                     </group>
                 </sheet>

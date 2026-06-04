@@ -23,16 +23,39 @@
         <field name="target">new</field>
     </record>
 
+
     <record id="view_golf_checkout_wizard_form" model="ir.ui.view">
         <field name="name">golf.checkout.wizard.form</field>
         <field name="model">golf.checkout.wizard</field>
         <field name="arch" type="xml">
-            <form>
-                <group>
-                    <field name="booking_id" readonly="1"/>
-                    <field name="booking_fee" readonly="1"/>
-                </group>
+            <form string="Golf Bill Receipt">
+                <div class="text-center" style="margin-bottom: 15px; margin-top: 10px;">
+                    <h3 style="color: #2c3e50; font-weight: bold;">GOLF CLUB RECEIPT</h3>
+                </div>
+                
+                <sheet>
+                    <group>
+                        <group string="Information">
+                            <field name="booking_id" readonly="1"/>
+                        </group>
+                        
+                        <group string="Payment Breakdown">
+                            <field name="currency_id" invisible="1"/>
+                            
+                            <field name="booking_fee" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="pos_total" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            
+                            <div class="oe_clear"/>
+                            <hr style="border-top: 1px solid #ccc; margin-top: 10px; margin-bottom: 10px;"/>
+                            
+                            <field name="grand_total" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"
+                                   style="font-size: 18px; font-weight: bold; color: #27ae60;"/>
+                        </group>
+                    </group>
+                </sheet>
+                
                 <footer>
+                    <button name="action_confirm_checkout" type="object" string="Confirm &amp; Done" class="btn-success"/>
                     <button name="action_print_receipt" type="object" string="Print Receipt" class="btn-primary"/>
                     <button string="Close" special="cancel" class="btn-secondary"/>
                 </footer>
