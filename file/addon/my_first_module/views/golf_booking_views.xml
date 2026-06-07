@@ -4,12 +4,13 @@
         <field name="model">golf.booking</field>
         <field name="arch" type="xml">
             <list>
+                <field name="currency_id" column_invisible="True"/>
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="tee_location_id"/>
                 <field name="start_datetime"/>
                 <field name="end_datetime"/>
-                <field name="pos_total" string="POS Total"/>
+<!--                <field name="pos_total" string="POS Total" widget="monetary"/>-->
                 <field name="state"/>
             </list>
         </field>
@@ -21,7 +22,8 @@
         <field name="arch" type="xml">
             <calendar string="Tee Bookings"
                       date_start="start_datetime"
-                      date_stop="end_datetime">
+                      date_stop="end_datetime"
+                      quick_create="false">
                 <field name="partner_id"/>
                 <field name="tee_location_id"/>
                 <field name="state"/>
@@ -43,6 +45,10 @@
                             class="btn-success"
                             invisible="state != 'booked'"/>
 
+                    <button name="point_of_sale.action_client_pos_menu" type="action" string="POS"
+                            class="btn-success"
+                            invisible="state != 'checked_in'"/>
+
                     <button name="action_check_out" type="object" string="Check Out"
                             class="btn-warning"
                             invisible="state != 'checked_in'"/>
@@ -56,29 +62,24 @@
                 </header>
 
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button type="object" name="action_view_logs"
-                                class="oe_stat_button" icon="fa-clock-o">
-                            <field name="checkin_log_count" widget="statinfo"/>
-                            <span>Logs</span>
-                        </button>
-                    </div>
-
                     <group>
                         <group>
-                            <field name="name" readonly="1"/>
+                            <field name="name" invisible="1"/>
+
+                            <field name="customer_id" string="Customer Type"/>
+
                             <field name="partner_id"/>
                             <field name="tee_location_id"/>
                         </group>
                         <group>
                             <field name="start_datetime"/>
                             <field name="end_datetime"/>
-                            <field name="booking_fee"/>
+                            <field name="booking_fee" widget="monetary"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Check-in History">
+                        <page string="Check-in History" invisible="state in ('cancelled')">
                             <field name="checkin_log_ids" readonly="1">
                                 <list>
                                     <field name="timestamp"/>
@@ -97,12 +98,13 @@
                                 <field name="cancelled_by" readonly="1"/>
                             </group>
                         </page>
-                    
-                        <page string="POS Orders">
-                            <field name="pos_order_ids" readonly="1">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="amount_total" sum="Total Amount"/>
+
+                        <page string="POS Orders" invisible="state in ('cancelled')">
+                            <field name="pos_order_ids">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="pos_reference" string="Order Ref"/>
+                                    <field name="date_order" string="Order Date"/>
+                                    <field name="amount_total" string="Total Amount" widget="monetary"/>
                                 </list>
                             </field>
                         </page>
@@ -112,30 +114,24 @@
         </field>
     </record>
 
-    <record id="action_golf_booking_all" model="ir.actions.act_window">
-        <field name="name">All Bookings</field>
-        <field name="res_model">golf.booking</field>
-        <field name="view_mode">list,form,calendar</field>
-    </record>
-
     <record id="action_golf_booking_active" model="ir.actions.act_window">
         <field name="name">Bookings</field>
         <field name="res_model">golf.booking</field>
-        <field name="view_mode">list,form,calendar</field>
+        <field name="view_mode">calendar,list,form</field>
         <field name="domain">[('state', 'in', ('draft', 'booked', 'checked_in'))]</field>
     </record>
 
     <record id="action_golf_booking_checkin" model="ir.actions.act_window">
         <field name="name">Check In / Out</field>
         <field name="res_model">golf.booking</field>
-        <field name="view_mode">list,form,calendar</field>
+        <field name="view_mode">calendar,list,form</field>
         <field name="domain">[('state', 'in', ('booked', 'checked_in', 'checked_out'))]</field>
     </record>
 
     <record id="action_golf_booking_cancelled" model="ir.actions.act_window">
         <field name="name">Cancelled Bookings</field>
         <field name="res_model">golf.booking</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">calendar,list,form</field>
         <field name="domain">[('state', '=', 'cancelled')]</field>
     </record>
 
@@ -145,9 +141,16 @@
         <field name="view_mode">list,form</field>
     </record>
 
+    <record id="action_golf_booking_all" model="ir.actions.act_window">
+        <field name="name">All Bookings</field>
+        <field name="res_model">golf.booking</field>
+        <field name="view_mode">calendar,list,form</field>
+        <!-- 💡 🚨 search_default_draft_bookings ပါဝင်သော context စာကြောင်းကို ဖျက်ထုတ်လိုက်ပါပြီ -->
+    </record>
+
     <menuitem id="menu_golf_root" 
               name="Golf Management" 
-              web_icon="my_first_module,static/description/images.png"
+              web_icon="my_first_module,static/src/image/images.png"
               sequence="1"/>
 
     <menuitem id="menu_golf_bookings"
@@ -156,27 +159,32 @@
               action="action_golf_booking_active"
               sequence="10"/>
 
-    <menuitem id="menu_golf_checkin"
-              name="Check In / Out"
-              parent="menu_golf_root"
-              action="action_golf_booking_checkin"
-              sequence="20"/>
+<!--    <menuitem id="menu_golf_checkin"-->
+<!--              name="Check In / Out"-->
+<!--              parent="menu_golf_root"-->
+<!--              action="action_golf_booking_checkin"-->
+<!--              sequence="20"/>-->
 
-    <menuitem id="menu_golf_cancelled"
-              name="Cancelled Bookings"
+    <menuitem id="menu_golf_reports_menu"
+              name="Reports"
               parent="menu_golf_root"
-              action="action_golf_booking_cancelled"
-              sequence="30"/>
+              action="contacts.action_contacts"
+              sequence="30" />
+
+    <menuitem id="menu_golf_configuration_menu"
+              name="Configuration"
+              parent="menu_golf_root"
+              sequence="40"/>
+
+    <menuitem id="menu_golf_pos_child"
+              name="POS"
+              parent="menu_golf_configuration_menu"
+              action="point_of_sale.action_client_pos_menu"
+              sequence="10" />
 
     <menuitem id="menu_golf_tee_locations"
               name="Tee Locations"
-              parent="menu_golf_root"
+              parent="menu_golf_configuration_menu"
               action="action_golf_tee_location"
-              sequence="40"/>
-
-    <menuitem id="menu_golf_pos_menu"
-              name="POS"
-              parent="menu_golf_root"
-              action="point_of_sale.action_client_pos_menu"
-              sequence="45"/>
+              sequence="20"/>
 </odoo>

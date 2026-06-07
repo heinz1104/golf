@@ -38,17 +38,20 @@
                         <group string="Information">
                             <field name="booking_id" readonly="1"/>
                         </group>
-                        
-                        <group string="Payment Breakdown">
+
+                        <group string="Payment">
                             <field name="currency_id" invisible="1"/>
-                            
-                            <field name="booking_fee" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            <field name="pos_total" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            
+
+                            <field name="duration_hours" readonly="1"/>
+
+                            <field name="tee_fee" readonly="1" widget="monetary"  />
+                            <field name="booking_fee" readonly="1" widget="monetary" />
+                            <field name="pos_total" readonly="1" widget="monetary" />
+
                             <div class="oe_clear"/>
                             <hr style="border-top: 1px solid #ccc; margin-top: 10px; margin-bottom: 10px;"/>
-                            
-                            <field name="grand_total" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"
+
+                            <field name="grand_total" readonly="1" widget="monetary"
                                    style="font-size: 18px; font-weight: bold; color: #27ae60;"/>
                         </group>
                     </group>

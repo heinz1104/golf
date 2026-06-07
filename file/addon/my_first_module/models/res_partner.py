@@ -10,6 +10,18 @@ class ResPartner(models.Model):
     golf_booking_count = fields.Integer(compute="_compute_golf_counts")
     golf_checkin_log_count = fields.Integer(compute="_compute_golf_counts")
 
+    golf_booking_ids = fields.One2many(
+        'golf.booking',
+        'partner_id',
+        string='Golf Bookings'
+    )
+
+    golf_pos_order_ids = fields.One2many(
+        'pos.order',
+        'partner_id',
+        string='Golf POS Orders'
+    )
+
     def _compute_golf_counts(self):
         Booking = self.env["golf.booking"]
         for rec in self:
@@ -23,7 +35,7 @@ class ResPartner(models.Model):
             "type": "ir.actions.act_window",
             "name": "Bookings",
             "res_model": "golf.booking",
-            "view_mode": "tree,form,calendar",
+            "view_mode": "list,form,calendar",
             "domain": [("partner_id", "=", self.id)],
         }
 
@@ -34,6 +46,6 @@ class ResPartner(models.Model):
             "type": "ir.actions.act_window",
             "name": "Check-in Logs",
             "res_model": "golf.checkin.log",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("booking_id", "in", bookings.ids)],
         }

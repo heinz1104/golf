@@ -1,6 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-
+import math
 
 class GolfBooking(models.Model):
     _name = "golf.booking"
@@ -14,6 +14,12 @@ class GolfBooking(models.Model):
         string="Player",
         required=True,
     )
+
+    customer_id = fields.Selection([
+        ("player", "Player"),
+        ("staff", "Staff"),
+        ("sponsor", "Sponsor")
+    ], string="Customer Type", default="player", required="True")
 
     tee_location_id = fields.Many2one(
         "golf.tee.location",
@@ -65,18 +71,25 @@ class GolfBooking(models.Model):
         compute="_compute_pos_orders",
         readonly=True,
     )
-    
+
     pos_order_count = fields.Integer(compute="_compute_pos_orders")
-    
+
     pos_total = fields.Monetary(
-        compute="_compute_totals", 
-        string="POS Total", 
-        store=True
+        compute="_compute_totals",
+        string="POS Total",
+        # store=True
     )
-    
+
     grand_total = fields.Monetary(
-        compute="_compute_totals", 
-        string="Grand Total", 
+        compute="_compute_totals",
+        string="Grand Total",
+        # store=True
+    )
+
+    # အချိန်သိမ်း
+    duration_hours = fields.Char(
+        compute="_compute_totals",
+        string="Duration",
         store=True
     )
 
@@ -129,9 +142,9 @@ class GolfBooking(models.Model):
             if rec.partner_id and rec.start_datetime and rec.end_datetime:
                 orders = posOrder.search([
                     ("partner_id", "=", rec.partner_id.id),
-                    ("date_order", ">=", rec.start_datetime),   # ကစားချိန် စတင်ပြီးနောက်ပိုင်း
-                    ("date_order", "<=", rec.end_datetime),     # ကစားချိန် မပြီးဆုံးခင်အတွင်း
-                    ("state", "!=", "cancel"),                  # Cancel ဖြစ်သွားတာတွေ မပြရန်
+                    ("date_order", ">=", rec.start_datetime),  # ကစားချိန်စ
+                    ("date_order", "<=", rec.end_datetime),  # ကစားချိန်ပြီး
+                    ("state", "!=", "cancel"),  # Cancelမပြ
                 ])
                 rec.pos_order_ids = orders
                 rec.pos_order_count = len(orders)
@@ -144,14 +157,36 @@ class GolfBooking(models.Model):
         for rec in self:
             rec.checkin_log_count = len(rec.checkin_log_ids)
 
-    # ဇယားကွက်ထဲပေါ်နေတဲ့ အချိန်ကိုက် POS Order တွေရဲ့ ပမာဏကိုပဲပေါင်း
-    @api.depends("booking_fee", "pos_order_ids.amount_total")
+    # POS Order တွေရဲ့ ပမာဏကိုပဲပေါင်း
+    @api.depends("booking_fee", "pos_order_ids", "tee_location_id.fee")
     def _compute_totals(self):
         for rec in self:
-            # အပေါ်က compute ပြီးသား ဆွဲထုတ်ပေးထားတဲ့ pos_order_ids ထဲက ပမာဏတွေကိုပဲ တိုက်ရိုက် ပေါင်း
+            # Notebook ထဲက POS Orderကိုပဲေါင်း
             pos_total = sum(rec.pos_order_ids.mapped("amount_total"))
+
+            tee_fee = 0.0
+            rec.duration_hours = "0 Hours" #အချိန်သတ်မှတ်
+            if rec.tee_location_id and rec.start_datetime and rec.end_datetime:
+                # အချိန်ကြည့်
+                duration_seconds = (rec.end_datetime - rec.start_datetime).total_seconds()
+
+                # စက္ကန့်မှနာရီ ပြောင်း
+                hours = duration_seconds / 3600.0
+
+                # ၁ နာရီကျော်တာနဲ့ ၂/၃ နာရီစာ အပြည့်ယူဖို့ math.ceil သုံး
+                billable_hours = math.ceil(hours)
+
+                # ၁နာရီစာပဲတွက်
+                if billable_hours < 1:
+                    billable_hours = 1
+
+                # fee x hour
+                tee_fee = rec.tee_location_id.fee * billable_hours
+
+                rec.duration_hours = f"{billable_hours} Hours"
+
             rec.pos_total = pos_total
-            rec.grand_total = (rec.booking_fee or 0.0) + pos_total
+            rec.grand_total = (rec.booking_fee or 0.0) + pos_total + tee_fee
 
     def action_book(self):
         for rec in self:
@@ -170,7 +205,7 @@ class GolfBooking(models.Model):
                 "user_id": self.env.user.id,
             })
 
-    # Wizard ပွင့်မည့် Return Action ကို Loop အပြင်ဘက်သို့ ထုတ်
+    # Wizard Return Action ကို Loop အပြင်ဘက်သို့ ထုတ်
     def action_check_out(self):
         for rec in self:
             rec.write({
@@ -183,7 +218,7 @@ class GolfBooking(models.Model):
                 "timestamp": fields.Datetime.now(),
                 "user_id": self.env.user.id,
             })
-        
+
         # single recordစစ်ပြီးမှ Wizard Action ကို Return ပြန်
         self.ensure_one()
         return {
@@ -220,7 +255,7 @@ class GolfBooking(models.Model):
                 "note": rec.cancel_reason or "",
             })
 
-    # Button နှိပ်လည်း ထိုကစားချိန်အတွင်းက အော်ဒါများကိုပဲ ပြ
+    # Button နှိပ်လည်း ကစားချိန်အတွင်းက အော်ဒါပဲ ပြ
     def action_view_pos_orders(self):
         self.ensure_one()
         return {

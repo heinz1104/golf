@@ -4,8 +4,8 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']" position="inside">
 
+            <xpath expr="//div[@name='button_box']" position="inside">
                 <button type="object"
                         name="action_view_golf_bookings"
                         class="oe_stat_button"
@@ -13,14 +13,33 @@
                     <field name="golf_booking_count" widget="statinfo"/>
                     <span>Bookings</span>
                 </button>
+            </xpath>
 
-                <button type="object"
-                        name="action_view_golf_logs"
-                        class="oe_stat_button"
-                        icon="fa-clock-o">
-                    <field name="golf_checkin_log_count" widget="statinfo"/>
-                    <span>Logs</span>
-                </button>
+            <xpath expr="//notebook" position="inside">
+
+                <page string="Golf Bookings">
+                    <field name="golf_booking_ids" readonly="1">
+                        <list>
+                            <field name="name" string="Booking Ref"/>
+                            <field name="start_datetime"/>
+                            <field name="end_datetime"/>
+                            <field name="tee_location_id"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
+
+                <page string="POS Orders">
+                    <field name="golf_pos_order_ids" readonly="1">
+                        <list>
+                            <field name="currency_id" column_invisible="True" />
+                            <field name="pos_reference" string="Order Ref"/>
+                            <field name="date_order"/>
+                            <field name="amount_total" widget="monetary"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </page>
 
             </xpath>
         </field>

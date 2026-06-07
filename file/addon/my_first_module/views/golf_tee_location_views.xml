@@ -4,9 +4,11 @@
         <field name="model">golf.tee.location</field>
         <field name="arch" type="xml">
             <list>
+                <field name="currency_id" invisible="1"/>
+
                 <field name="name"/>
                 <field name="course"/>
-                <field name="fee"/>
+                <field name="fee" widget="monetary"/>
                 <field name="active"/>
             </list>
         </field>
@@ -19,9 +21,11 @@
             <form>
                 <sheet>
                     <group>
+                        <field name="currency_id" invisible="1"/>
+
                         <field name="name"/>
                         <field name="course"/>
-                        <field name="fee"/>
+                        <field name="fee" widget="monetary"/>
                         <field name="active"/>
                     </group>
                 </sheet>
